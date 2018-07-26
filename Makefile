@@ -2,7 +2,7 @@ nfhook-objs = nfhook_hook.o
 obj-m += nfhook.o
 
 #test_hook-objs = test_hook.o
-#obj-m += test_hook.o
+obj-m += test_hook.o
 
 KVERSION := $(shell uname -r)
 

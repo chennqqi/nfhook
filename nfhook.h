@@ -1,6 +1,8 @@
 #ifndef NFHOOK_H
 #define NFHOOK_H
 
+#include <linux/version.h>
+
 struct sk_buff;
 struct net_device;
 struct net;
