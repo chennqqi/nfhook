@@ -209,7 +209,7 @@ static int _unhook_action_pernet(struct net *net)
 static int _hook_action_pernet(struct net *net) { return 0; }
 static int _unhook_action_pernet(struct net *net) { return 0; }
 
-static int _hook_action()
+static int _hook_action(void)
 {
 	int i, ret;
 
@@ -229,7 +229,7 @@ register_error:
 	return -1;
 }
 
-static int _unhook_action()
+static int _unhook_action(void)
 {
 	int i;
 
@@ -304,5 +304,7 @@ module_init(nfhook_init);
 module_exit(nfhook_exit);
 
 EXPORT_SYMBOL(nfhook_packet_handler);
+#ifdef SUPPORT_PERNET_NOTIFIACTION
 EXPORT_SYMBOL(nfhook_pernet_init_callback);
 EXPORT_SYMBOL(nfhook_pernet_exit_callback);
+#endif
