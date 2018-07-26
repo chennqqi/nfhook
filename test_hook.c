@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/netfilter_ipv4.h>
 #include <linux/ip.h>
+#include <linux/netdevice.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Johnnie Deacon");
