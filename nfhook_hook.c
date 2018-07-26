@@ -208,6 +208,39 @@ static int _unhook_action_pernet(struct net *net)
 #else
 static int _hook_action_pernet(struct net *net) { return 0; }
 static int _unhook_action_pernet(struct net *net) { return 0; }
+
+static int _hook_action()
+{
+	int i, ret;
+
+	printk("Doing %s\n", __FUNCTION__);
+	for (i = 0; i < HOOKS_COUNT; i++) {
+		ret = nf_register_hook(&hooks[i].hook);
+		if (ret < 0)
+			goto register_error;
+	}
+
+	return 0;
+
+register_error:
+	for (--i; i >= 0; i--) {
+		nf_unregister_hook(&hooks[i].hook);
+	}
+	return -1;
+}
+
+static int _unhook_action()
+{
+	int i;
+
+	printk("Doing %s\n", __FUNCTION__);
+	for (i = 0; i < HOOKS_COUNT; i++) {
+		nf_unregister_hook(&hooks[i].hook);
+	}
+
+	return 0;
+}
+
 #endif
 
 
@@ -242,10 +275,15 @@ static struct pernet_operations pernet_ops = {
 
 static int __init nfhook_init(void)
 {
-#ifdef SUPPORT_PERNET_NOTIFIACTION
-	int ret;
+	int ret = 0;
 
+#ifdef SUPPORT_PERNET_NOTIFIACTION
 	ret = register_pernet_subsys(&pernet_ops);
+	if (ret < 0)
+		return ret;
+#endif
+#ifndef SUPPORT_NF_REGISTER_NET_HOOK
+	ret = _hook_action();
 	if (ret < 0)
 		return ret;
 #endif
@@ -256,6 +294,9 @@ static void __exit nfhook_exit(void)
 {
 #ifdef SUPPORT_PERNET_NOTIFIACTION
 	unregister_pernet_subsys(&pernet_ops);
+#endif
+#ifndef SUPPORT_NF_REGISTER_NET_HOOK
+	_unhook_action();
 #endif
 }
 
