@@ -7,6 +7,8 @@
 #include <uapi/linux/netfilter_ipv4.h>
 #include <uapi/linux/netfilter_arp.h>
 
+#include "nfhook.h"
+#if 0
 // ------------------------------------------------------------------------
 // kernel API compatibility
 
@@ -21,6 +23,7 @@ typedef	int (*PACKET_HANDLER)(int pf, unsigned int hooknum,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
 #define SUPPORT_PERNET_NOTIFIACTION
 typedef	int (*NET_NOTIFYFN_T)(struct net *);
+#endif
 #endif
 
 // ------------------------------------------------------------------------
