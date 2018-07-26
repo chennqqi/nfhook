@@ -14,8 +14,12 @@ int my_handler(int pf, unsigned int hooknum, struct sk_buff *skb, const struct n
 {
 	const struct net_device *dev = in ?: out;
 	if (dev) {
+#ifdef SUPPORT_PERNET_NOTIFIACTION
 		if (dev_net(dev) == &init_net) printk("%p H %d %d !\n", skb,  pf, hooknum);
 		else printk("%p C %d %d !\n", skb, pf, hooknum);
+#else
+		printk("%p %d %d !\n", skb,  pf, hooknum);
+#endif
 	}
 	return NF_ACCEPT;
 }
