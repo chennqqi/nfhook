@@ -27,24 +27,23 @@ int my_handler(int pf, unsigned int hooknum, struct sk_buff *skb, const struct n
 
 static int __init mod_init(void)
 {
+	int ret;
+
 	printk("Doing %s\n", __FUNCTION__);
 
-	if (nfhook_packet_handler == NULL) {
-		nfhook_packet_handler = my_handler;
-	} else {
-		printk("Someone has registered hooked! exit.\n");
-		return -1;
-	}
+	ret = nfhook_enable(my_handler);
 
-	printk("Done %s\n", __FUNCTION__);
-	return 0;
+	printk("Done %s %d\n", __FUNCTION__, ret);
+	return ret;
 }
 
 static void __exit mod_exit(void)
 {
+	int ret;
+
 	printk("Doing %s\n", __FUNCTION__);
-	nfhook_packet_handler = NULL;
-	printk("Done %s\n", __FUNCTION__);
+	ret = nfhook_disable();
+	printk("Done %s %d\n", __FUNCTION__, ret);
 }
 
 module_init(mod_init);

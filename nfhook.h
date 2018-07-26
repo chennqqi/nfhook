@@ -26,7 +26,8 @@ extern NET_NOTIFYFN_T nfhook_pernet_init_callback;
 extern NET_NOTIFYFN_T nfhook_pernet_exit_callback;
 #endif
 
-extern PACKET_HANDLER nfhook_packet_handler;
 
+int nfhook_enable(PACKET_HANDLER handler);
+int nfhook_disable(void);
 
 #endif // NFHOOK_H

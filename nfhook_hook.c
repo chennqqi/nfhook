@@ -8,6 +8,7 @@
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/types.h>
+#include <linux/spinlock.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Johnnie Deacon");
@@ -16,7 +17,8 @@ MODULE_VERSION("0.1");
 
 #include "compat.h"
 
-PACKET_HANDLER nfhook_packet_handler = NULL;
+static DEFINE_SPINLOCK(handler_lock);
+static PACKET_HANDLER packet_handler = NULL;
 
 static unsigned int
 nf_callback_all(int pf, unsigned int hooknum,
@@ -25,8 +27,8 @@ nf_callback_all(int pf, unsigned int hooknum,
 {
 	DECLARE_HOOK_SKB_VAR(skb);
 
-	if (nfhook_packet_handler) {
-		int rc = nfhook_packet_handler(pf, hooknum, skb, in, out);
+	if (packet_handler) {
+		int rc = packet_handler(pf, hooknum, skb, in, out);
 		return rc;
 	}
 
@@ -273,37 +275,75 @@ static struct pernet_operations pernet_ops = {
 };
 #endif // SUPPORT_PERNET_NOTIFIACTION
 
-static int __init nfhook_init(void)
+int nfhook_enable(PACKET_HANDLER handler)
 {
 	int ret = 0;
 
+	if (handler == NULL)
+		return -ENOENT;
+
+	spin_lock(&handler_lock);
+
+	if (packet_handler) {
+		spin_unlock(&handler_lock);
+		return -EBUSY;
+	}
+
 #ifdef SUPPORT_PERNET_NOTIFIACTION
 	ret = register_pernet_subsys(&pernet_ops);
-	if (ret < 0)
+	if (ret < 0) {
+		spin_unlock(&handler_lock);
 		return ret;
+	}
 #endif
 #ifndef SUPPORT_NF_REGISTER_NET_HOOK
 	ret = _hook_action();
-	if (ret < 0)
+	if (ret < 0) {
+		spin_unlock(&handler_lock);
 		return ret;
+	}
 #endif
+
+	packet_handler = handler;
+
+	spin_unlock(&handler_lock);
 	return 0;
 }
 
-static void __exit nfhook_exit(void)
+int nfhook_disable(void)
 {
+	spin_lock(&handler_lock);
+
+	if (!packet_handler) {
+		return -ENOENT;
+	}
+
 #ifdef SUPPORT_PERNET_NOTIFIACTION
 	unregister_pernet_subsys(&pernet_ops);
 #endif
 #ifndef SUPPORT_NF_REGISTER_NET_HOOK
 	_unhook_action();
 #endif
+
+	packet_handler = NULL;
+	spin_unlock(&handler_lock);
+	return 0;
+}
+
+static int __init nfhook_init(void)
+{
+	return 0;
+}
+
+static void __exit nfhook_exit(void)
+{
 }
 
 module_init(nfhook_init);
 module_exit(nfhook_exit);
 
-EXPORT_SYMBOL(nfhook_packet_handler);
+EXPORT_SYMBOL(nfhook_enable);
+EXPORT_SYMBOL(nfhook_disable);
 #ifdef SUPPORT_PERNET_NOTIFIACTION
 EXPORT_SYMBOL(nfhook_pernet_init_callback);
 EXPORT_SYMBOL(nfhook_pernet_exit_callback);
