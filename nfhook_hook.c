@@ -3,8 +3,8 @@
 #include <linux/init.h>
 #include <linux/skbuff.h>
 #include <linux/netfilter.h>
-#include <uapi/linux/netfilter_ipv4.h>
-#include <uapi/linux/netfilter_arp.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/netfilter_arp.h>
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/types.h>
