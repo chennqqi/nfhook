@@ -17,8 +17,15 @@ MODULE_VERSION("0.1");
 
 #include "compat.h"
 
+
 static DEFINE_SPINLOCK(handler_lock);
 static PACKET_HANDLER packet_handler = NULL;
+
+static int verbose = 0;
+module_param (verbose, int, 0644);
+
+
+#define PRINT(fmt, args...) if (verbose) printk(KERN_WARNING fmt, ## args)
 
 static unsigned int
 nf_callback_all(int pf, unsigned int hooknum,
@@ -179,7 +186,7 @@ static int _hook_action_pernet(struct net *net)
 {
 	int i, ret;
 
-	printk("Doing %s\n", __FUNCTION__);
+	PRINT("Doing %s %p\n", __FUNCTION__, net);
 	for (i = 0; i < HOOKS_COUNT; i++) {
 		ret = nf_register_net_hook(net, &hooks[i].hook);
 		if (ret < 0)
@@ -199,7 +206,7 @@ static int _unhook_action_pernet(struct net *net)
 {
 	int i;
 
-	printk("Doing %s\n", __FUNCTION__);
+	PRINT("Doing %s %p\n", __FUNCTION__, net);
 	for (i = 0; i < HOOKS_COUNT; i++) {
 		nf_unregister_net_hook(net, &hooks[i].hook);
 	}
@@ -215,7 +222,7 @@ static int _hook_action(void)
 {
 	int i, ret;
 
-	printk("Doing %s\n", __FUNCTION__);
+	PRINT("Doing %s\n", __FUNCTION__);
 	for (i = 0; i < HOOKS_COUNT; i++) {
 		ret = nf_register_hook(&hooks[i].hook);
 		if (ret < 0)
@@ -235,7 +242,7 @@ static int _unhook_action(void)
 {
 	int i;
 
-	printk("Doing %s\n", __FUNCTION__);
+	PRINT("Doing %s\n", __FUNCTION__);
 	for (i = 0; i < HOOKS_COUNT; i++) {
 		nf_unregister_hook(&hooks[i].hook);
 	}
@@ -279,6 +286,8 @@ int nfhook_enable(PACKET_HANDLER handler)
 {
 	int ret = 0;
 
+	PRINT("Doing %s %p\n", __FUNCTION__, handler);
+
 	if (handler == NULL)
 		return -ENOENT;
 
@@ -307,11 +316,13 @@ int nfhook_enable(PACKET_HANDLER handler)
 	packet_handler = handler;
 
 	spin_unlock(&handler_lock);
+	PRINT("Done %s\n", __FUNCTION__);
 	return 0;
 }
 
 int nfhook_disable(void)
 {
+	PRINT("Doing %s\n", __FUNCTION__);
 	spin_lock(&handler_lock);
 
 	if (!packet_handler) {
@@ -328,6 +339,8 @@ int nfhook_disable(void)
 
 	packet_handler = NULL;
 	spin_unlock(&handler_lock);
+
+	PRINT("Done %s\n", __FUNCTION__);
 	return 0;
 }
 
