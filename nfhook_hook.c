@@ -315,6 +315,7 @@ int nfhook_disable(void)
 	spin_lock(&handler_lock);
 
 	if (!packet_handler) {
+		spin_unlock(&handler_lock);
 		return -ENOENT;
 	}
 
