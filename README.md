@@ -1,6 +1,6 @@
 # nfhook
 
-nfhook is a netfilter hook framework which can support different hook API in Linux kernels.
+nfhook is a netfilter hook framework which can support different hook APIs in Linux kernels.
   - Define default hook points
   - Provide a generic hook interface
   - Support net namespaces
