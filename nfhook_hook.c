@@ -218,7 +218,7 @@ static int _unhook_action_pernet(struct net *net)
 static int _hook_action_pernet(struct net *net) { return 0; }
 static int _unhook_action_pernet(struct net *net) { return 0; }
 
-static int _hook_action(void)
+static int _hook_action_legacy(void)
 {
 	int i, ret;
 
@@ -238,7 +238,7 @@ register_error:
 	return -1;
 }
 
-static int _unhook_action(void)
+static int _unhook_action_legacy(void)
 {
 	int i;
 
@@ -306,7 +306,7 @@ int nfhook_enable(PACKET_HANDLER handler)
 	}
 #endif
 #ifndef SUPPORT_NF_REGISTER_NET_HOOK
-	ret = _hook_action();
+	ret = _hook_action_legacy();
 	if (ret < 0) {
 		spin_unlock(&handler_lock);
 		return ret;
@@ -334,7 +334,7 @@ int nfhook_disable(void)
 	unregister_pernet_subsys(&pernet_ops);
 #endif
 #ifndef SUPPORT_NF_REGISTER_NET_HOOK
-	_unhook_action();
+	_unhook_action_legacy();
 #endif
 
 	packet_handler = NULL;
